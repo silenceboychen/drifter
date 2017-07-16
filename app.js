@@ -34,6 +34,14 @@ app.get('/', (req, res) => {
   });
 });
 
+//扔回海里一个漂流瓶
+//POST owner=xxx&type=xxx&content=xxx&time=xxx
+app.post('/back', (req, res) => {
+  redis.throwBack(req.body, (result) => {
+    res.json(result);
+  });
+});
+
 app.listen(3000, () => {
   console.log("listen port: 3000");
 });

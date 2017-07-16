@@ -1,16 +1,14 @@
 const redis = require('redis');
 const client = redis.createClient();
 
-exports.throw = function(bottle, callback) {
-  console.log(bottle);
+exports.throw = (bottle, callback) => {
   bottle.time = bottle.time || Date.now();
   //为每个漂流瓶随机生成一个id
   let bottleId = Math.random().toString(16);
   let type = {male: 0, female: 1};
   //根据漂流瓶类型的不同讲漂流瓶保存到不同的数据库
-  console.log(type[bottle.type]);
-  client.select(type[bottle.type], function() {
-    client.hmset(bottleId, bottle, function(err, result) {
+  client.select(type[bottle.type], () => {
+    client.hmset(bottleId, bottle, (err, result) => {
       if(err) {
         return callback({code: 0, msg: "过会儿再试试吧！"});
       }
@@ -42,6 +40,20 @@ exports.pick = (info, callback) => {
         callback({code: 1, msg: bottle});
         client.del(bottleId);
       });
+    });
+  });
+}
+
+exports.throwBack = (bottle, callback) => {
+  let type = {male: 0, female: 1};
+  let bottleId = Math.random().toString(16);
+  client.select(type[bottle.type], () => {
+    client.hmset(bottleId, bottle, (err, result) => {
+      if(err) {
+        return callback({code: 0, msg: "过会儿再试试吧！"});
+      }
+      callback({code: 1, msg: result});
+      client.pexpire(bottleId, bottle.time + 86400000 - Date.now());
     });
   });
 }
