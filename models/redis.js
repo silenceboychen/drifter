@@ -1,14 +1,16 @@
 const redis = require('redis');
 const client = redis.createClient();
 
-exports.throw = (bottle, callback) => {
+exports.throw = function(bottle, callback) {
+  console.log(bottle);
   bottle.time = bottle.time || Date.now();
   //为每个漂流瓶随机生成一个id
   let bottleId = Math.random().toString(16);
   let type = {male: 0, female: 1};
   //根据漂流瓶类型的不同讲漂流瓶保存到不同的数据库
-  client.select(type[bottle.type], () => {
-    client.hmset(bottleId, bottle, (err, result) => {
+  console.log(type[bottle.type]);
+  client.select(type[bottle.type], function() {
+    client.hmset(bottleId, bottle, function(err, result) {
       if(err) {
         return callback({code: 0, msg: "过会儿再试试吧！"});
       }

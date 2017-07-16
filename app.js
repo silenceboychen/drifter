@@ -1,8 +1,9 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const redis = require('./models/redis');
 
 const app = express();
-app.use(express.bodyParser());
+app.use(bodyParser.json());
 
 //扔一个漂流瓶
 //POST owner=XXX&type=xxx&content=xxx[&time=xxx]
@@ -21,10 +22,11 @@ app.post('/', (req, res) => {
 //捡一个漂流瓶
 //GET /?user=xxx[&type=xxx]
 app.get('/', (req, res) => {
-  if(req.query.user) {
+  console.log(req.query);
+  if(!req.query.user) {
     return res.json({code: 0, msg: "信息不完整"});
   }
-  if(req.query.type && (["male", "female"].indexOf(req.query.type) === -1)) {
+  if(req.query.type && (["all", "male", "female"].indexOf(req.query.type) === -1)) {
     return res.json({code: 0, msg: "类型错误"});
   }
   redis.pick(req.query, (result) => {
@@ -32,4 +34,6 @@ app.get('/', (req, res) => {
   });
 });
 
-app.listen(3000);
+app.listen(3000, () => {
+  console.log("listen port: 3000");
+});
