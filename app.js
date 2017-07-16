@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const redis = require('./models/redis');
+const mongodb = require('./models/mongodb');
 
 const app = express();
 app.use(bodyParser.json());
@@ -22,7 +23,6 @@ app.post('/', (req, res) => {
 //捡一个漂流瓶
 //GET /?user=xxx[&type=xxx]
 app.get('/', (req, res) => {
-  console.log(req.query);
   if(!req.query.user) {
     return res.json({code: 0, msg: "信息不完整"});
   }
@@ -30,6 +30,14 @@ app.get('/', (req, res) => {
     return res.json({code: 0, msg: "类型错误"});
   }
   redis.pick(req.query, (result) => {
+    if(result.code === 1) {
+      mongodb.save(req.query.user, result.msg, (err) => {
+        if(err) {
+          return res.json({code: 0, msg: "获取漂流瓶失败，请重试"});
+        }
+        // return res.json(result);
+      });
+    }
     res.json(result);
   });
 });
@@ -38,6 +46,21 @@ app.get('/', (req, res) => {
 //POST owner=xxx&type=xxx&content=xxx&time=xxx
 app.post('/back', (req, res) => {
   redis.throwBack(req.body, (result) => {
+    res.json(result);
+  });
+});
+
+//获取一个用户所有的漂流瓶
+app.get('/user/:user', (req, res) => {
+  mongodb.getAll(req.params.user, (result) => {
+    res.json(result);
+  });
+});
+
+//获取特定id的漂流瓶
+//GET /bottle/yjagsdkjashd
+app.get('/bottle/:_id', (req, res) => {
+  mongodb.getOne(req.params._id, (result) => {
     res.json(result);
   });
 });
